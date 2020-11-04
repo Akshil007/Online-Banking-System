@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include<string.h>
 #include<stdlib.h>
+#include<time.h>
+
 int gfd;
 struct flock lck,lck2;
 struct password_change
@@ -39,98 +41,6 @@ struct modify{
 		char type;
 		int update;
 	};
-struct customer delete(struct customer del)
-{
-	int fd=open("customer",O_RDWR,0744);
-	int fd2=open("copy",O_CREAT|O_RDWR,0744);
-	int size;
-	lseek(fd,0,SEEK_SET);
-	struct customer r;
-	char res='N';
-	int delt=0;
-	while((size=read(fd,&r,sizeof(r)))!=0)
-	{
-		if(strcmp(del.username,r.username)==0)//if match found then skipping
-		{
-			delt=1;
-			continue;
-		}
-		write(fd2,&r,sizeof(r));//writing in copy file
-	}
-	close(fd);
-	close(fd2);
-	remove("customer");//removing old file
-	rename("copy","customer");//renaming copied file to customer which does not contains deleted record
-	if(delt==0)//if username not fond
-	{
-		strcpy(del.username,"Not found");
-	}
-	else
-	{
-		strcpy(del.username,"found");
-	}
-	
-	return del;
-}
-struct customer search(struct customer ser)
-{
-	int fd=open("customer",O_RDWR,0744);
-	int size;
-	lseek(fd,0,SEEK_SET);
-	struct customer r;
-	char res='N';
-	while((size=read(fd,&r,sizeof(r)))!=0)
-	{
-		if(strcmp(ser.username,r.username)==0)
-		{
-			return r;	//already exist in database
-		}
-	}
-	strcpy(ser.username,"Not found");
-	return ser;
-}
-char add(struct customer add_req)
-{
-	int fd=open("customer",O_RDWR,0744);
-	int size;
-	lseek(fd,0,SEEK_SET);
-	struct customer r;
-	char res='N';
-	while((size=read(fd,&r,sizeof(r)))!=0)
-	{
-		if(strcmp(add_req.username,r.username)==0)
-		{
-			res='E';	//already exist in database
-		}
-	}
-	if(res=='E')
-	{
-		return res;
-	}
-	
-	//get an account no
-	struct acc_no a;
-	int fd2=open("acc_no",O_CREAT|O_RDWR,0744);
-	read(fd2,&a,sizeof(a));
-	add_req.account_number=++a.account_number;
-	lseek(fd2,0,SEEK_SET);
-	write(fd2,&a,sizeof(a));
-	
-	lseek(fd,0,SEEK_END);
-	write(fd,&add_req,sizeof(add_req));
-	close(fd);
-	close(fd2);
-	return 'S';//success
-	
-
-}	
-void addafterop(struct customer add_req)
-{
-	int fd=open("customer",O_RDWR,0744);	
-	lseek(fd,0,SEEK_END);
-	write(fd,&add_req,sizeof(add_req));
-	close(fd);
-}
 void lockjoint(struct customer joint)
 {
 	int size;
@@ -218,6 +128,106 @@ char login(struct customer request,int login)
 		return 's';
 	}
 }
+struct customer delete(struct customer del)
+{
+	int fd=open("customer",O_RDWR,0744);
+	int fd2=open("copy",O_CREAT|O_RDWR,0744);
+	int size;
+	lseek(fd,0,SEEK_SET);
+	struct customer r;
+	char res='N';
+	int delt=0;
+	while((size=read(fd,&r,sizeof(r)))!=0)
+	{
+		if(strcmp(del.username,r.username)==0)//if match found then skipping
+		{
+			delt=1;
+			continue;
+		}
+		write(fd2,&r,sizeof(r));//writing in copy file
+	}
+	close(fd);
+	close(fd2);
+	remove("customer");//removing old file
+	rename("copy","customer");//renaming copied file to customer which does not contains deleted record
+	if(delt==0)//if username not fond
+	{
+		strcpy(del.username,"Not found");
+	}
+	else
+	{
+		strcpy(del.username,"found");
+	}
+	
+	
+	return del;
+}
+struct customer search(struct customer ser)
+{
+	int fd=open("customer",O_RDWR,0744);
+	int size;
+	lseek(fd,0,SEEK_SET);
+	struct customer r;
+	char res='N';
+	while((size=read(fd,&r,sizeof(r)))!=0)
+	{
+		if(strcmp(ser.username,r.username)==0)
+		{
+			return r;	//already exist in database
+		}
+	}
+	strcpy(ser.username,"Not found");
+	return ser;
+}
+char add(struct customer add_req)
+{
+	int fd=open("customer",O_RDWR,0744);
+	int size;
+	lseek(fd,0,SEEK_SET);
+	struct customer r;
+	char res='N';
+	while((size=read(fd,&r,sizeof(r)))!=0)
+	{
+		if(strcmp(add_req.username,r.username)==0)
+		{
+			res='E';	//already exist in database
+		}
+	}
+	if(res=='E')
+	{
+		return res;
+	}
+	
+	//get an account no
+	struct acc_no a;
+	int fd2=open("acc_no",O_CREAT|O_RDWR,0744);
+	read(fd2,&a,sizeof(a));
+	add_req.account_number=++a.account_number;
+	lseek(fd2,0,SEEK_SET);
+	write(fd2,&a,sizeof(a));
+	
+	lseek(fd,0,SEEK_END);
+	write(fd,&add_req,sizeof(add_req));
+	close(fd);
+	close(fd2);
+	login(add_req,1);
+	return 'S';//success
+	
+
+}	
+void addafterop(struct customer add_req)
+{
+	int fd=open("customer",O_RDWR,0744);	
+	lseek(fd,0,SEEK_END);
+	write(fd,&add_req,sizeof(add_req));
+	//login(add_req,1);
+	//login(add_req,1);
+	//write(0,login_time_cp.username,sizeof(login_time_cp.username));
+	//write(0,add_req.username,sizeof(login_time_cp.username));
+	close(fd);
+}
+
+
 struct modify modification(struct modify m)
 {
 	int fd=open("customer",O_RDWR,0744);
@@ -276,7 +286,7 @@ void writejoint2(struct customer joint)
 {
 	int fd=open("customer",O_RDWR,0744);
 	int size;
-	lseek(gfd,0,SEEK_SET);
+	lseek(fd,0,SEEK_SET);
 	struct customer r;
 	char res='N';
 	while((size=read(fd,&r,sizeof(r)))!=0)
@@ -291,6 +301,19 @@ void writejoint2(struct customer joint)
 	}
 
 }
+void updatepassbook(struct customer data)
+{
+	char buf[100],path[100];
+	sprintf(path,"passbook/%lld",data.account_number);
+	time_t t;
+	time(&t);
+	int len=sprintf(buf,"%s Balance=%f\n",ctime(&t),data.balance);
+	int fd=open(path,O_CREAT|O_RDWR,0744);
+	lseek(fd,0,SEEK_END);
+	write(fd,buf,len);
+	close(fd);
+}
+
 struct customer bank(struct customer data,int op,struct password_change pass)
 {	double nbalance;
 	switch(op)
@@ -305,10 +328,13 @@ struct customer bank(struct customer data,int op,struct password_change pass)
 			{
 				writejoint2(login_time_cp);
 			}
+			updatepassbook(login_time_cp);
+			//login(login_time_cp,1);
+			login(login_time_cp,1);
 			strcpy(data.username,"success");
 			break;
 		case 2:
-			if(login_time_cp.balance>data.balance)
+			if(login_time_cp.balance>=data.balance)
 			{
 				nbalance = login_time_cp.balance - data.balance;//withdraw
 				login_time_cp.balance = nbalance;//to store in database
@@ -319,6 +345,8 @@ struct customer bank(struct customer data,int op,struct password_change pass)
 				{
 					writejoint2(login_time_cp);
 				}
+				updatepassbook(login_time_cp);
+				login(login_time_cp,1);
 				strcpy(data.username,"success");
 			}
 			else{
@@ -335,6 +363,7 @@ struct customer bank(struct customer data,int op,struct password_change pass)
 				strcpy(login_time_cp.password,pass.newpassword);
 				delete(login_time_cp);
 				addafterop(login_time_cp);
+				login(login_time_cp,1);
 				strcpy(data.username,"success");
 					
 			}
@@ -393,7 +422,7 @@ int main()
 {
 	
 	struct sockaddr_in serv, cli;
-
+	mkdir("passbook",0777);
 	int sd,nsd,size_client; 
 	sd= socket (AF_INET, SOCK_STREAM, 0);
 
@@ -401,7 +430,7 @@ int main()
 	serv.sin_addr.s_addr = INADDR_ANY;
 	
 	//Insert new port no here
-	serv.sin_port = htons(7790);
+	serv.sin_port = htons(7940);
 	
 	int bind_result=bind(sd, (void *)(&serv), sizeof(serv));
 	int listen_result=listen (sd, 5);
@@ -420,7 +449,7 @@ int main()
 			   int size=read(nsd,&request,sizeof(request));
 			 //  write(0,request.username,sizeof(request.username));
 			   c=login(request,1);//login classified as a for admin,n for normal,j for joint
-			   			//L for alreday logged in
+			   login(request,1);		//L for alreday logged in
 			   if(c=='a')
 			   {
 			   	
@@ -437,6 +466,8 @@ int main()
 					   		int j=1;
 					   		char c;
 					   		struct customer newj;
+					   		while(1)
+					   		{
 					   		while((newsize=read(nsd,&new,sizeof(new)))==0);
 					   		if(new.type=='j')//for joint
 					   		{
@@ -455,14 +486,14 @@ int main()
 						   				break;
 						   			case 'S':
 						   				write(nsd,"ok",3);
-					
+										break;
 						   				break;
 						   			default:
 						   				write(nsd,"default",7);
-						   				
+						   				break;
 						   				break;
 						   		}
-						   	
+						   	}
 					   	}
 					   	else if(strcmp(cmd,"mod")==0)
 					   	{
@@ -544,10 +575,30 @@ int main()
 			   				write(nsd,&res,sizeof(res));
 			   				
 			   			}
+			   			else if(strcmp(cmd,"vie")==0)
+			   			{
+			   				
+							char path[100],buf[10000];
+							sprintf(path,"passbook/%lld",login_time_cp.account_number);
+							int fd=open(path,O_CREAT|O_RDONLY,0744);
+							int len=read(fd,buf,10000);
+							if(len==-1||len==0)
+							{
+								write(nsd,"empty",6);	
+							}
+							else
+							{
+								write(nsd,buf,len);
+							}
+							close(fd);
+							
+			   				
+			   			}
 			   			else if(strcmp(cmd,"out")==0)
 			   			{
 			   				in_n=0;
 			   			}
+			   			
 			   		}
 			   		write(0,"normalend\n",10);//to check where control goes
 			   	}
@@ -564,9 +615,10 @@ int main()
 			   	{
 			   		write(nsd,"default\n",6);
 			   	}
+			   	struct customer dumy;
+			   	login(dumy,0);
 			   }
-			   struct customer dumy;
-			   login(dumy,0);
+			   
 			   
 			
 		   

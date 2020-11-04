@@ -35,15 +35,17 @@ struct customer modification(struct customer data,int sd)
 		int update;
 	};
 	struct modify new;
+	int c=1;
+	while(c==1)
+	{
 	printf("\nChoose What Wants To Update\n");
 	printf("1.Update UserName\n");
 	printf("2.Password\n");
 	printf("3.Usertype\n");
 	int choice;
 	scanf("%d",&choice);
-	int c=1;
-	while(c==1)
-	{
+	
+	
 	printf("\nPlease Enter following details\n");
 	printf("\nEnter original username(UNIQUE):");
 	scanf("%s",new.oldusername);
@@ -105,7 +107,7 @@ int main()
 	serv.sin_addr.s_addr = INADDR_ANY;
 	
 	//insert new port no here
-	serv.sin_port = htons(7790);
+	serv.sin_port = htons(7940);
 
 	int connect_result=connect (sd, (void *)(&serv), sizeof(serv));
 	printf("Connection result:%d\n",connect_result);
@@ -279,7 +281,8 @@ int main()
 				printf("2.Withdraw\n");
 				printf("3.Balance Enquiry\n");
 				printf("4.Password Change\n");
-				printf("5.Exit\n");
+				printf("5.View Passbook\n");
+				printf("6.Exit\n");
 				int choice;
 				scanf("%d",&choice);
 				switch(choice)
@@ -353,6 +356,22 @@ int main()
 						}
 						break;
 					case 5:
+						write(sd,"vie",4);
+						char buf[10000];
+						int len=read(sd,buf,10000);
+						if(strcmp(buf,"empty")==0)
+						{
+							printf("\nYour passbook is empty :(\n\n");
+						}
+						else
+						{
+							printf("\n\t\tPassbook");
+							printf("\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+							printf("\n%s",buf);
+							printf("\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n");
+						}
+						break;
+					case 6:
 						write(sd,"out",4);
 						inside=0;
 						break;
@@ -384,6 +403,7 @@ int main()
 	printf("\n\nYou are logged out\n\n");
 	printf("Do you want to continue(Y/N)?");
 	scanf(" %c",&ch);
+	write()
 	}
 
 
