@@ -28,7 +28,7 @@ Communication Mechanisms.<br>
 
 ## Run through guide
 1) First compile and run add.c file to create admin.
-2) Insert same  port no in client.c(line no 108) and server.c(line no 404) 
+2) Insert same  port no in client.c(line no 110) and server.c(line no 443) 
 3) Now run server.c 
 4) open new terminal and run client.c</br>
 Enjoy!!
